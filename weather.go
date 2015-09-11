@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/http/httputil"
 	"net/url"
 	"reflect"
 	"strings"
@@ -164,8 +163,8 @@ func (c *Client) doHTTPGet(url string, data url.Values) (*http.Response, error) 
 func (c *Client) doHTTP(req *http.Request) (*http.Response, error) {
 
 	// debug
-	debug, _ := httputil.DumpRequestOut(req, true)
-	fmt.Printf("%s\n\n", debug)
+	//debug, _ := httputil.DumpRequestOut(req, true)
+	//fmt.Printf("%s\n\n", debug)
 
 	var err error
 	c.httpResponse, err = c.httpClient.Do(req)
@@ -184,8 +183,8 @@ func processHTTPResponse(resp *http.Response, err error, holder interface{}) err
 	}
 
 	// debug
-	debug, _ := httputil.DumpResponse(resp, true)
-	fmt.Printf("%s\n\n", debug)
+	//debug, _ := httputil.DumpResponse(resp, true)
+	//fmt.Printf("%s\n\n", debug)
 
 	// check http return code
 	if resp.StatusCode != 200 {
