@@ -108,7 +108,7 @@ type DashboardData struct {
 	WindAngle           float32 `json:"WindAngle,omitempty"`
 	WindStrength        float32 `json:"WindStrength,omitempty"`
 	GustAngle           float32 `json:"GustAngle,omitempty"`
-	GustStrengthfloat32 float32 `json:"GustStrengthfloat32,omitempty"`
+	GustStrength        float32 `json:"GustStrength,omitempty"`
 	LastMesure          float64 `json:"time_utc"`
 }
 
@@ -213,6 +213,10 @@ func (c *Client) GetDeviceCollection() (*DeviceCollection, error) {
 	// associated each module to its station
 	for i, station := range dc.Body.Stations {
 		for _, module := range dc.Body.Modules {
+			// Check for wind module, and correct information coming from netatmo
+			if module.Type == "NAModule2" {
+				module.DataType = []string {"WindAngle", "WindStrength", "GustAngle", "GustStrength"}
+			}
 			if module.MainDevice == station.ID {
 				dc.Body.Stations[i].AssociatedModules = append(dc.Body.Stations[i].AssociatedModules, module)
 			}
