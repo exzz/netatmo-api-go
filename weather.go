@@ -81,19 +81,19 @@ type Device struct {
 }
 
 // DashboardData is used to store sensor values
-// Temperature : Last temperature measure @ LastMesure (in °C)
-// Humidity : Last humidity measured @ LastMesure (in %)
+// Temperature : Last temperature measure @ LastMeasure (in °C)
+// Humidity : Last humidity measured @ LastMeasure (in %)
 // CO2 : Last Co2 measured @ time_utc (in ppm)
-// Noise : Last noise measured @ LastMesure (in db)
-// Pressure : Last Sea level pressure measured @ LastMesure (in mb)
-// AbsolutePressure : Real measured pressure @ LastMesure (in mb)
+// Noise : Last noise measured @ LastMeasure (in db)
+// Pressure : Last Sea level pressure measured @ LastMeasure (in mb)
+// AbsolutePressure : Real measured pressure @ LastMeasure (in mb)
 // Rain : Last rain measured (in mm)
 // Rain1Hour : Amount of rain in last hour
 // Rain1Day : Amount of rain today
-// WindAngle : Current 5 min average wind direction @ LastMesure (in °)
-// WindStrength : Current 5 min average wind speed @ LastMesure (in km/h)
-// GustAngle : Direction of the last 5 min highest gust wind @ LastMesure (in °)
-// GustStrength : Speed of the last 5 min highest gust wind @ LastMesure (in km/h)
+// WindAngle : Current 5 min average wind direction @ LastMeasure (in °)
+// WindStrength : Current 5 min average wind speed @ LastMeasure (in km/h)
+// GustAngle : Direction of the last 5 min highest gust wind @ LastMeasure (in °)
+// GustStrength : Speed of the last 5 min highest gust wind @ LastMeasure (in km/h)
 // LastMessage : Contains timestamp of last data received
 type DashboardData struct {
 	Temperature         float32 `json:"Temperature,omitempty"`
@@ -108,8 +108,8 @@ type DashboardData struct {
 	WindAngle           float32 `json:"WindAngle,omitempty"`
 	WindStrength        float32 `json:"WindStrength,omitempty"`
 	GustAngle           float32 `json:"GustAngle,omitempty"`
-	GustStrengthfloat32 float32 `json:"GustStrengthfloat32,omitempty"`
-	LastMesure          float64 `json:"time_utc"`
+	GustStrength        float32 `json:"GustStrength,omitempty"`
+	LastMeasure          float64 `json:"time_utc"`
 }
 
 // NewClient create a handle authentication to Netamo API
@@ -213,6 +213,10 @@ func (c *Client) GetDeviceCollection() (*DeviceCollection, error) {
 	// associated each module to its station
 	for i, station := range dc.Body.Stations {
 		for _, module := range dc.Body.Modules {
+			// Check for wind module, and correct information coming from netatmo
+			if module.Type == "NAModule2" {
+				module.DataType = []string {"WindAngle", "WindStrength", "GustAngle", "GustStrength"}
+			}
 			if module.MainDevice == station.ID {
 				dc.Body.Stations[i].AssociatedModules = append(dc.Body.Stations[i].AssociatedModules, module)
 			}
@@ -244,5 +248,5 @@ func (s *Device) Data() (int, map[string]interface{}) {
 		m[datatype] = reflect.Indirect(reflect.ValueOf(s.DashboardData)).FieldByName(datatype).Interface()
 	}
 
-	return int(s.DashboardData.LastMesure), m
+	return int(s.DashboardData.LastMeasure), m
 }
