@@ -32,7 +32,7 @@ func main() {
     os.Exit(1)
   }
 
-  dc, err := n.GetDeviceCollection()
+  dc, err := n.Read()
   if err != nil {
     fmt.Println(err)
     os.Exit(1)
@@ -80,5 +80,5 @@ Station : Home
 
 ```
 ## Tips
-- Only GetDeviceCollection() method actually do an API call and refresh all data at once
+- Only Read() method actually do an API call and refresh all data at once
 - Main station is handle as a module, it means that Modules() method returns list of additional modules and station itself.
