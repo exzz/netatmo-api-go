@@ -17,7 +17,7 @@ const (
 	// DefaultAuthURL is netatmo auth url
 	authURL = baseURL + "oauth2/token"
 	// DefaultDeviceURL is netatmo device url
-	deviceURL = baseURL + "api/devicelist"
+	deviceURL = baseURL + "/api/getstationsdata"
 )
 
 // Config is used to specify credential to Netatmo API
@@ -44,14 +44,12 @@ type Client struct {
 	httpResponse *http.Response
 }
 
-// DeviceCollection hold all devices from netatmo account (stations and modules)
+// DeviceCollection hold all devices from netatmo account
 // Error : returned error (nil if OK)
 // Stations : List of stations
-// Modules : List of additionnal modules
 type DeviceCollection struct {
 	Body struct {
-		Stations []*Device `json:"devices"`
-		Modules  []*Device
+		Devices []*Device `json:"devices"`
 	}
 }
 
@@ -67,17 +65,15 @@ type DeviceCollection struct {
 //  "NAModule2" : for the wind gauge module
 // DashboardData : Data collection from device sensors
 // DataType : List of available datas
-// MainDevice : Id of main station (only for module)
-// AssociatedModules : Associated modules (only for station)
+// LinkedModules : Associated modules (only for station)
 type Device struct {
-	ID                string `json:"_id"`
-	StationName       string `json:"station_name"`
-	ModuleName        string `json:"module_name"`
-	Type              string
-	DashboardData     DashboardData `json:"dashboard_data"`
-	DataType          []string      `json:"data_type"`
-	MainDevice        string        `json:"main_device,omitempty"`
-	AssociatedModules []*Device     `json:"-"`
+	ID            string `json:"_id"`
+	StationName   string `json:"station_name"`
+	ModuleName    string `json:"module_name"`
+	Type          string
+	DashboardData DashboardData `json:"dashboard_data"`
+	DataType      []string      `json:"data_type"`
+	LinkedModules []*Device     `json:"modules"`
 }
 
 // DashboardData is used to store sensor values
@@ -200,8 +196,8 @@ func processHTTPResponse(resp *http.Response, err error, holder interface{}) err
 	return nil
 }
 
-// GetDeviceCollection returns the list of stations owned by the user, and their modules
-func (c *Client) GetDeviceCollection() (*DeviceCollection, error) {
+// GetStations returns the list of stations owned by the user, and their modules
+func (c *Client) Read() (*DeviceCollection, error) {
 	//resp, err := c.doHTTPPostForm(deviceURL, url.Values{"app_type": {"app_station"}})
 	resp, err := c.doHTTPGet(deviceURL, url.Values{"app_type": {"app_station"}})
 	dc := &DeviceCollection{}
@@ -210,39 +206,34 @@ func (c *Client) GetDeviceCollection() (*DeviceCollection, error) {
 		return nil, err
 	}
 
-	// associated each module to its station
-	for i, station := range dc.Body.Stations {
-		for _, module := range dc.Body.Modules {
-			if module.MainDevice == station.ID {
-				dc.Body.Stations[i].AssociatedModules = append(dc.Body.Stations[i].AssociatedModules, module)
-			}
-		}
-	}
-
 	return dc, nil
 }
 
-// Stations returns the list of stations
-func (dc *DeviceCollection) Stations() []*Device {
-	return dc.Body.Stations
+// Devices returns the list of devices
+func (dc *DeviceCollection) Devices() []*Device {
+	return dc.Body.Devices
 }
 
-// Modules returns the list of modules associated to this station
-// also return station itself in the list
-func (s *Device) Modules() []*Device {
-	modules := s.AssociatedModules
+// Stations is an alias of Devices
+func (dc *DeviceCollection) Stations() []*Device {
+	return dc.Devices()
+}
 
-	modules = append(modules, s)
+// Modules returns associated device module
+func (d *Device) Modules() []*Device {
+	modules := d.LinkedModules
+	modules = append(modules, d)
+
 	return modules
 }
 
 // Data returns timestamp and the list of sensor value for this module
-func (s *Device) Data() (int, map[string]interface{}) {
+func (d *Device) Data() (int, map[string]interface{}) {
 
 	m := make(map[string]interface{})
-	for _, datatype := range s.DataType {
-		m[datatype] = reflect.Indirect(reflect.ValueOf(s.DashboardData)).FieldByName(datatype).Interface()
+	for _, datatype := range d.DataType {
+		m[datatype] = reflect.Indirect(reflect.ValueOf(d.DashboardData)).FieldByName(datatype).Interface()
 	}
 
-	return int(s.DashboardData.LastMesure), m
+	return int(d.DashboardData.LastMesure), m
 }
