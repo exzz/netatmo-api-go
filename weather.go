@@ -33,20 +33,14 @@ type Config struct {
 }
 
 // Client use to make request to Netatmo API
-// ClientID : Client ID from netatmo app registration at http://dev.netatmo.com/dev/listapps
-// ClientSecret : Client app secret
-// Username : Your netatmo account username
-// Password : Your netatmo account password
-// Stations : Contains all Station account
 type Client struct {
 	oauth        *oauth2.Config
 	httpClient   *http.Client
 	httpResponse *http.Response
+	Dc           *DeviceCollection
 }
 
 // DeviceCollection hold all devices from netatmo account
-// Error : returned error (nil if OK)
-// Stations : List of stations
 type DeviceCollection struct {
 	Body struct {
 		Devices []*Device `json:"devices"`
@@ -125,6 +119,7 @@ func NewClient(config Config) (*Client, error) {
 	return &Client{
 		oauth:      oauth,
 		httpClient: oauth.Client(oauth2.NoContext, token),
+		Dc:         &DeviceCollection{},
 	}, err
 }
 
@@ -198,15 +193,14 @@ func processHTTPResponse(resp *http.Response, err error, holder interface{}) err
 
 // GetStations returns the list of stations owned by the user, and their modules
 func (c *Client) Read() (*DeviceCollection, error) {
-	//resp, err := c.doHTTPPostForm(deviceURL, url.Values{"app_type": {"app_station"}})
 	resp, err := c.doHTTPGet(deviceURL, url.Values{"app_type": {"app_station"}})
-	dc := &DeviceCollection{}
+	//dc := &DeviceCollection{}
 
-	if err = processHTTPResponse(resp, err, dc); err != nil {
+	if err = processHTTPResponse(resp, err, c.Dc); err != nil {
 		return nil, err
 	}
 
-	return dc, nil
+	return c.Dc, nil
 }
 
 // Devices returns the list of devices
