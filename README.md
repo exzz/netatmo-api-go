@@ -18,6 +18,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	netatmo "github.com/exzz/netatmo-api-go"
 )
@@ -41,16 +42,28 @@ func main() {
 		os.Exit(1)
 	}
 
+	ct := time.Now().UTC().Unix()
+
 	for _, station := range dc.Stations() {
 		fmt.Printf("Station : %s\n", station.StationName)
 
 		for _, module := range station.Modules() {
 			fmt.Printf("\tModule : %s\n", module.ModuleName)
 
-			ts, data := module.Data()
-			for dataType, value := range data {
-				fmt.Printf("\t\t%s : %s (%d)\n", dataType, value, ts)
+			{
+				ts, data := module.Info()
+				for dataName, value := range data {
+					fmt.Printf("\t\t%s : %v (updated %ds ago)\n", dataName, value, ct-ts)
+				}
 			}
+
+			{
+				ts, data := module.Data()
+				for dataName, value := range data {
+					fmt.Printf("\t\t%s : %v (updated %ds ago)\n", dataName, value, ct-ts)
+				}
+			}
+
 		}
 	}
 }
@@ -58,31 +71,42 @@ func main() {
 
 Output should look like this :
 ```
-Station : Home
-        Module : Chambre Enfant
-                Temperature : %!s(float32=18.4) (1479127223)
-                CO2 : %!s(int32=567) (1479127223)
-                Humidity : %!s(int32=65) (1479127223)
-        Module : Chambre
-                Temperature : %!s(float32=18.1) (1479127230)
-                CO2 : %!s(int32=494) (1479127230)
-                Humidity : %!s(int32=65) (1479127230)
-        Module : Salon
-                Temperature : %!s(float32=18.3) (1479127217)
-                CO2 : %!s(int32=434) (1479127217)
-                Humidity : %!s(int32=63) (1479127217)
-        Module : Exterieur
-                Temperature : %!s(float32=11.9) (1479127243)
-                Humidity : %!s(int32=81) (1479127243)
-        Module : Pluie
-                Rain : %!s(float32=0) (1479127249)
-        Module : Salle à manger
-                Temperature : %!s(float32=17.8) (1479127255)
-                CO2 : %!s(int32=473) (1479127255)
-                Humidity : %!s(int32=68) (1479127255)
-                Noise : %!s(int32=36) (1479127255)
-                Pressure : %!s(float32=1033.3) (1479127255)
-
+Station : Home               
+        Module : Chambre Elsa                              
+                BatteryPercent : 47 (updated 323s ago)     
+                RFStatus : 68 (updated 323s ago)           
+                Temperature : 22.8 (updated 323s ago)      
+                Humidity : 53 (updated 323s ago)           
+                CO2 : 446 (updated 323s ago)               
+        Module : Chambre parents                           
+                BatteryPercent : 50 (updated 323s ago)     
+                RFStatus : 71 (updated 323s ago)           
+                Temperature : 19.9 (updated 323s ago)      
+                Humidity : 61 (updated 323s ago)           
+                CO2 : 428 (updated 323s ago)               
+        Module : Chambre Jules                             
+                BatteryPercent : 46 (updated 323s ago)     
+                RFStatus : 60 (updated 323s ago)           
+                CO2 : 396 (updated 323s ago)               
+                Temperature : 22 (updated 323s ago)        
+                Humidity : 54 (updated 323s ago)           
+        Module : Exterieur   
+                BatteryPercent : 37 (updated 323s ago)     
+                RFStatus : 66 (updated 323s ago)           
+                Temperature : 23.4 (updated 323s ago)      
+                Humidity : 52 (updated 323s ago)           
+        Module : Pluie       
+                BatteryPercent : 72 (updated 9684499s ago)
+                RFStatus : 54 (updated 9684499s ago)       
+                Rain : 0.101 (updated 9684499s ago)        
+        Module : Living      
+                WifiStatus : 37 (updated 278s ago)         
+                Temperature : 24 (updated 278s ago)        
+                Humidity : 49 (updated 278s ago)           
+                CO2 : 733 (updated 278s ago)               
+                Noise : 50 (updated 278s ago)              
+                Pressure : 1028.1 (updated 278s ago)       
+                AbsolutePressure : 1008.4 (updated 278s ago)
 ```
 ## Tips
 - Only Read() method actually do an API call and refresh all data at once
