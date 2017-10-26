@@ -76,20 +76,20 @@ type Device struct {
 }
 
 // DashboardData is used to store sensor values
-// Temperature : Last temperature measure @ LastMesure (in °C)
-// Humidity : Last humidity measured @ LastMesure (in %)
+// Temperature : Last temperature measure @ LastMeasure (in °C)
+// Humidity : Last humidity measured @ LastMeasure (in %)
 // CO2 : Last Co2 measured @ time_utc (in ppm)
-// Noise : Last noise measured @ LastMesure (in db)
-// Pressure : Last Sea level pressure measured @ LastMesure (in mb)
-// AbsolutePressure : Real measured pressure @ LastMesure (in mb)
+// Noise : Last noise measured @ LastMeasure (in db)
+// Pressure : Last Sea level pressure measured @ LastMeasure (in mb)
+// AbsolutePressure : Real measured pressure @ LastMeasure (in mb)
 // Rain : Last rain measured (in mm)
 // Rain1Hour : Amount of rain in last hour
 // Rain1Day : Amount of rain today
-// WindAngle : Current 5 min average wind direction @ LastMesure (in °)
-// WindStrength : Current 5 min average wind speed @ LastMesure (in km/h)
-// GustAngle : Direction of the last 5 min highest gust wind @ LastMesure (in °)
-// GustStrength : Speed of the last 5 min highest gust wind @ LastMesure (in km/h)
-// LastMesure : Contains timestamp of last data received
+// WindAngle : Current 5 min average wind direction @ LastMeasure (in °)
+// WindStrength : Current 5 min average wind speed @ LastMeasure (in km/h)
+// GustAngle : Direction of the last 5 min highest gust wind @ LastMeasure (in °)
+// GustStrength : Speed of the last 5 min highest gust wind @ LastMeasure (in km/h)
+// LastMeasure : Contains timestamp of last data received
 type DashboardData struct {
 	Temperature      *float32 `json:"Temperature,omitempty"` // use pointer to detect ommitted field by json mapping
 	Humidity         *int32   `json:"Humidity,omitempty"`
@@ -104,7 +104,7 @@ type DashboardData struct {
 	WindStrength     *int32   `json:"WindStrength,omitempty"`
 	GustAngle        *int32   `json:"GustAngle,omitempty"`
 	GustStrength     *int32   `json:"GustStrength,omitempty"`
-	LastMesure       *int64   `json:"time_utc"`
+	LastMeasure      *int64   `json:"time_utc"`
 }
 
 // NewClient create a handle authentication to Netamo API
@@ -275,7 +275,7 @@ func (d *Device) Data() (int64, map[string]interface{}) {
 		m["GustStrength"] = *d.DashboardData.GustStrength
 	}
 
-	return *d.DashboardData.LastMesure, m
+	return *d.DashboardData.LastMeasure, m
 }
 
 // Info returns timestamp and the list of info value for this module
@@ -295,5 +295,5 @@ func (d *Device) Info() (int64, map[string]interface{}) {
 		m["RFStatus"] = *d.RFStatus
 	}
 
-	return *d.DashboardData.LastMesure, m
+	return *d.DashboardData.LastMeasure, m
 }
