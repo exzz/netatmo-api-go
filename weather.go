@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"reflect"
 	"strings"
 
 	"golang.org/x/oauth2"
@@ -51,6 +50,9 @@ type DeviceCollection struct {
 // ID : Mac address
 // StationName : Station name (only for station)
 // ModuleName : Module name
+// BatteryPercent : Percentage of battery remaining
+// WifiStatus : Wifi status per Base station
+// RFStatus : Current radio status per module
 // Type : Module type :
 //  "NAMain" : for the base station
 //  "NAModule1" : for the outdoor module
@@ -61,11 +63,14 @@ type DeviceCollection struct {
 // DataType : List of available datas
 // LinkedModules : Associated modules (only for station)
 type Device struct {
-	ID            string `json:"_id"`
-	StationName   string `json:"station_name"`
-	ModuleName    string `json:"module_name"`
-	Type          string
-	DashboardData DashboardData `json:"dashboard_data"`
+	ID             string `json:"_id"`
+	StationName    string `json:"station_name"`
+	ModuleName     string `json:"module_name"`
+	BatteryPercent *int32 `json:"battery_percent,omitempty"`
+	WifiStatus     *int32 `json:"wifi_status,omitempty"`
+	RFStatus       *int32 `json:"rf_status,omitempty"`
+	Type           string
+	DashboardData  DashboardData `json:"dashboard_data"`
 	//DataType      []string      `json:"data_type"`
 	LinkedModules []*Device `json:"modules"`
 }
@@ -98,8 +103,9 @@ type DashboardData struct {
 	WindAngle        *int32   `json:"WindAngle,omitempty"`
 	WindStrength     *int32   `json:"WindStrength,omitempty"`
 	GustAngle        *int32   `json:"GustAngle,omitempty"`
-	GustStrength     *int32   `json:"GustStrengthfloat32,omitempty"`
-	LastMeasure      *int64   `json:"time_utc"`
+	GustStrength     *int32   `json:"GustStrength,omitempty"`
+	LastMeasure       *int64   `json:"time_utc"`
+
 }
 
 // NewClient create a handle authentication to Netamo API
@@ -222,19 +228,73 @@ func (d *Device) Modules() []*Device {
 }
 
 // Data returns timestamp and the list of sensor value for this module
-func (d *Device) Data() (int, map[string]interface{}) {
+func (d *Device) Data() (int64, map[string]interface{}) {
 
 	// return only populate field of DashboardData
 	m := make(map[string]interface{})
-	r := reflect.ValueOf(d.DashboardData)
 
-	for i := 0; i < r.NumField(); i++ {
-		//fmt.Println(r.Type().Field(i).Name)
-		if reflect.Indirect(r.Field(i)).IsValid() {
-			m[r.Type().Field(i).Name] = reflect.Indirect(r.Field(i))
-			//fmt.Println(reflect.Indirect(r.Field(i)))
-		}
+	if d.DashboardData.Temperature != nil {
+		m["Temperature"] = *d.DashboardData.Temperature
+	}
+	if d.DashboardData.Humidity != nil {
+		m["Humidity"] = *d.DashboardData.Humidity
+	}
+	if d.DashboardData.CO2 != nil {
+		m["CO2"] = *d.DashboardData.CO2
+	}
+	if d.DashboardData.Noise != nil {
+		m["Noise"] = *d.DashboardData.Noise
+	}
+	if d.DashboardData.Pressure != nil {
+		m["Pressure"] = *d.DashboardData.Pressure
+	}
+	if d.DashboardData.AbsolutePressure != nil {
+		m["AbsolutePressure"] = *d.DashboardData.AbsolutePressure
+	}
+	if d.DashboardData.Rain != nil {
+		m["Rain"] = *d.DashboardData.Rain
+	}
+	if d.DashboardData.Rain1Hour != nil {
+		m["Rain1Hour"] = *d.DashboardData.Rain1Hour
+	}
+	if d.DashboardData.Rain1Day != nil {
+		m["Rain1Day"] = *d.DashboardData.Rain1Day
+	}
+	if d.DashboardData.WindAngle != nil {
+		m["WindAngle"] = *d.DashboardData.WindAngle
+	}
+	if d.DashboardData.WindStrength != nil {
+		m["WindStrength"] = *d.DashboardData.WindStrength
+	}
+	if d.DashboardData.GustAngle != nil {
+		m["GustAngle"] = *d.DashboardData.GustAngle
+	}
+	if d.DashboardData.GustAngle != nil {
+		m["GustAngle"] = *d.DashboardData.GustAngle
+	}
+	if d.DashboardData.GustStrength != nil {
+		m["GustStrength"] = *d.DashboardData.GustStrength
 	}
 
-	return int(*d.DashboardData.LastMeasure), m
+	return *d.DashboardData.LastMesure, m
+}
+
+// Info returns timestamp and the list of info value for this module
+func (d *Device) Info() (int64, map[string]interface{}) {
+
+	// return only populate field of DashboardData
+	m := make(map[string]interface{})
+
+	// Return data from module level
+	if d.BatteryPercent != nil {
+		m["BatteryPercent"] = *d.BatteryPercent
+	}
+	if d.WifiStatus != nil {
+		m["WifiStatus"] = *d.WifiStatus
+	}
+	if d.RFStatus != nil {
+		m["RFStatus"] = *d.RFStatus
+	}
+
+	return *d.DashboardData.LastMeasure, m
 }
