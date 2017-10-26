@@ -1,75 +1,12 @@
 # netatmo-api-go
 Simple API to access Netatmo weather station data written in Go.
 
-Currently tested only with one weather station, outdoor and indoor modules and rain gauge. Let me know if it works with wind gauge.
-
 ## Quickstart
 
 - [Create a new netatmo app](https://dev.netatmo.com/dev/createapp)
-- Download module ```go get github.com/exzz/netatmo-api-go```
-- Try below example (do not forget to edit auth credentials)
-
-## Example
-
-```
-go
-package main
-
-import (
-	"fmt"
-	"os"
-	"time"
-
-	netatmo "github.com/exzz/netatmo-api-go"
-)
-
-func main() {
-
-	n, err := netatmo.NewClient(netatmo.Config{
-    ClientID:     "YOUR_APP_ID",
-    ClientSecret: "YOUR_APP_SECRET",
-    Username:     "YOUR_CREDENTIAL",
-    Password:     "YOUR_PASSWORD",
-	})
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	dc, err := n.Read()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	ct := time.Now().UTC().Unix()
-
-	for _, station := range dc.Stations() {
-		fmt.Printf("Station : %s\n", station.StationName)
-
-		for _, module := range station.Modules() {
-			fmt.Printf("\tModule : %s\n", module.ModuleName)
-
-			{
-				ts, data := module.Info()
-				for dataName, value := range data {
-					fmt.Printf("\t\t%s : %v (updated %ds ago)\n", dataName, value, ct-ts)
-				}
-			}
-
-			{
-				ts, data := module.Data()
-				for dataName, value := range data {
-					fmt.Printf("\t\t%s : %v (updated %ds ago)\n", dataName, value, ct-ts)
-				}
-			}
-
-		}
-	}
-}
-```
-
-Output should look like this :
+- Edit ```test/sample.conf```with your credentials
+- run ```go run test/netatmo-api-test.go -f test/sample.conf```
+- Output shall look like :
 ```
 Station : Home               
         Module : Chambre Elsa                              
@@ -108,6 +45,8 @@ Station : Home
                 Pressure : 1028.1 (updated 278s ago)       
                 AbsolutePressure : 1008.4 (updated 278s ago)
 ```
+
 ## Tips
 - Only Read() method actually do an API call and refresh all data at once
 - Main station is handle as a module, it means that Modules() method returns list of additional modules and station itself.
+- Data() returns sensors values (such as temperature) whereas Info() returns module status (such as battery level)
