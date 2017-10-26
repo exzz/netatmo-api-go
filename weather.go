@@ -53,10 +53,6 @@ type DeviceCollection struct {
 // BatteryPercent : Percentage of battery remaining
 // WifiStatus : Wifi status per Base station
 // RFStatus : Current radio status per module
-// Firmware : Version of the software
-// DateSetup : Date when the Weather station was set up
-// LastMessage
-// LastSeen
 // Type : Module type :
 //  "NAMain" : for the base station
 //  "NAModule1" : for the outdoor module
