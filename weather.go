@@ -98,7 +98,7 @@ type DashboardData struct {
 	WindAngle        *int32   `json:"WindAngle,omitempty"`
 	WindStrength     *int32   `json:"WindStrength,omitempty"`
 	GustAngle        *int32   `json:"GustAngle,omitempty"`
-	GustStrength     *int32   `json:"GustStrengthfloat32,omitempty"`
+	GustStrength     *int32   `json:"GustStrength,omitempty"`
 	LastMesure       *int64   `json:"time_utc"`
 }
 
