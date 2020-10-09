@@ -63,6 +63,10 @@ func main() {
 			fmt.Printf("\tModule : %s\n", module.ModuleName)
 
 			{
+				if module.DashboardData.LastMeasure == nil {
+					fmt.Printf("\t\tSkipping %s, no measurement data available.\n", module.ModuleName)
+					continue
+				}
 				ts, data := module.Info()
 				for dataName, value := range data {
 					fmt.Printf("\t\t%s : %v (updated %ds ago)\n", dataName, value, ct-ts)
