@@ -201,7 +201,7 @@ func (c *Client) Read() (*DeviceCollection, error) {
 	resp, err := c.doHTTPGet(deviceURL, url.Values{"app_type": {"app_station"}})
 	//dc := &DeviceCollection{}
 
-	if err = processHTTPResponse(resp, err, c.Dc); err != nil {
+	if resp == nil || err = processHTTPResponse(resp, err, c.Dc); err != nil {
 		return nil, err
 	}
 
