@@ -114,7 +114,7 @@ type Place struct {
 	City		string     `json:"city,omitempty"`
 	Country		string     `json:"country,omitempty"`
 	Timezone	string     `json:"timezone,omitempty"`
-	Location   []Location  `json:"location,omitempty"`
+	Location   Location  `json:"location,omitempty"`
 }
 
 type Location struct {
