@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 
 	"golang.org/x/oauth2"
@@ -123,14 +122,8 @@ type Location struct {
 }
 
 func (tp *Location) UnmarshalJSON(data []byte) error {
-    var v []interface{}
-    if err := json.Unmarshal(data, &v); err != nil {
-        fmt.Printf("Error whilde decoding %v\n", err)
-        return err
-    }
-    tp.Longitude, _ = strconv.ParseFloat(v[0].(string), 64)
-    tp.Latitude, _ = strconv.ParseFloat(v[1].(string), 64)
-    return nil
+    a := []interface{}{&tp.Longitude, &tp.Latitude}
+    return json.Unmarshal(data, &a)
 }
 
 // NewClient create a handle authentication to Netamo API
