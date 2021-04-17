@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"golang.org/x/oauth2"
@@ -71,6 +72,7 @@ type Device struct {
 	RFStatus       *int32 `json:"rf_status,omitempty"`
 	Type           string
 	DashboardData  DashboardData `json:"dashboard_data"`
+	Place          Place         `json:"place"`
 	//DataType      []string      `json:"data_type"`
 	LinkedModules []*Device `json:"modules"`
 }
@@ -105,6 +107,30 @@ type DashboardData struct {
 	GustAngle        *int32   `json:"GustAngle,omitempty"`
 	GustStrength     *int32   `json:"GustStrength,omitempty"`
 	LastMeasure      *int64   `json:"time_utc"`
+}
+
+type Place struct {
+	Altitude	*int32     `json:"altitude,omitempty"`
+	City		string     `json:"city,omitempty"`
+	Country		string     `json:"country,omitempty"`
+	Timezone	string     `json:"timezone,omitempty"`
+	Location   []Location  `json:"location,omitempty"`
+}
+
+type Location struct {
+	Longitude   float64
+	Latitude    float64
+}
+
+func (tp *Location) UnmarshalJSON(data []byte) error {
+    var v []interface{}
+    if err := json.Unmarshal(data, &v); err != nil {
+        fmt.Printf("Error whilde decoding %v\n", err)
+        return err
+    }
+    tp.Longitude, _ = strconv.ParseFloat(v[0].(string), 64)
+    tp.Latitude, _ = strconv.ParseFloat(v[1].(string), 64)
+    return nil
 }
 
 // NewClient create a handle authentication to Netamo API
