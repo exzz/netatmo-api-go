@@ -258,6 +258,15 @@ func (d *Device) Data() (int64, map[string]interface{}) {
 	if d.DashboardData.Temperature != nil {
 		m["Temperature"] = *d.DashboardData.Temperature
 	}
+	if d.DashboardData.MinTemp != nil {
+		m["MinTemp"] = *d.DashboardData.MinTemp
+	}
+	if d.DashboardData.MaxTemp != nil {
+		m["MaxTemp"] = *d.DashboardData.MaxTemp
+	}
+	if d.DashboardData.TempTrend != "" {
+		m["TempTrend"] = d.DashboardData.TempTrend
+	}
 	if d.DashboardData.Humidity != nil {
 		m["Humidity"] = *d.DashboardData.Humidity
 	}
@@ -272,6 +281,9 @@ func (d *Device) Data() (int64, map[string]interface{}) {
 	}
 	if d.DashboardData.AbsolutePressure != nil {
 		m["AbsolutePressure"] = *d.DashboardData.AbsolutePressure
+	}
+	if d.DashboardData.PressureTrend != "" {
+		m["PressureTrend"] = d.DashboardData.PressureTrend
 	}
 	if d.DashboardData.Rain != nil {
 		m["Rain"] = *d.DashboardData.Rain
