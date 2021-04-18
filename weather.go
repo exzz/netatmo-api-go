@@ -117,8 +117,8 @@ type Place struct {
 }
 
 type Location struct {
-	Longitude   float64
-	Latitude    float64
+	Longitude   *float32
+	Latitude    *float32
 }
 
 func (tp *Location) UnmarshalJSON(data []byte) error {
