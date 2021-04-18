@@ -58,6 +58,7 @@ func main() {
 
 	for _, station := range dc.Stations() {
 		fmt.Printf("Station : %s\n", station.StationName)
+		fmt.Printf("\tCity: %s\n\tCountry: %s\n\tTimezone: %s\n\tLongitude: %f\n\tLatitude: %f\n\tAltitude: %d\n\n", station.Place.City, station.Place.Country, station.Place.Timezone, station.Place.Location.Longitude, station.Place.Location.Latitude, station.Place.Altitude)
 
 		for _, module := range station.Modules() {
 			fmt.Printf("\tModule : %s\n", module.ModuleName)
