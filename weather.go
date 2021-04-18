@@ -93,11 +93,15 @@ type Device struct {
 // LastMeasure : Contains timestamp of last data received
 type DashboardData struct {
 	Temperature      *float32 `json:"Temperature,omitempty"` // use pointer to detect ommitted field by json mapping
+	MaxTemp          *float32 `json:"max_temp,omitempty"`
+	MinTemp          *float32 `json:"min_temp,omitempty"`
+	TempTrend        string   `json:"temp_trend,omitempty"`
 	Humidity         *int32   `json:"Humidity,omitempty"`
 	CO2              *int32   `json:"CO2,omitempty"`
 	Noise            *int32   `json:"Noise,omitempty"`
 	Pressure         *float32 `json:"Pressure,omitempty"`
 	AbsolutePressure *float32 `json:"AbsolutePressure,omitempty"`
+	PressureTrend	 string   `json:"pressure_trend,omitempty"`
 	Rain             *float32 `json:"Rain,omitempty"`
 	Rain1Hour        *float32 `json:"sum_rain_1,omitempty"`
 	Rain1Day         *float32 `json:"sum_rain_24,omitempty"`
