@@ -71,6 +71,7 @@ type Device struct {
 	RFStatus       *int32 `json:"rf_status,omitempty"`
 	Type           string
 	DashboardData  DashboardData `json:"dashboard_data"`
+	Place          Place         `json:"place"`
 	//DataType      []string      `json:"data_type"`
 	LinkedModules []*Device `json:"modules"`
 }
@@ -92,11 +93,15 @@ type Device struct {
 // LastMeasure : Contains timestamp of last data received
 type DashboardData struct {
 	Temperature      *float32 `json:"Temperature,omitempty"` // use pointer to detect ommitted field by json mapping
+	MaxTemp          *float32 `json:"max_temp,omitempty"`
+	MinTemp          *float32 `json:"min_temp,omitempty"`
+	TempTrend        string   `json:"temp_trend,omitempty"`
 	Humidity         *int32   `json:"Humidity,omitempty"`
 	CO2              *int32   `json:"CO2,omitempty"`
 	Noise            *int32   `json:"Noise,omitempty"`
 	Pressure         *float32 `json:"Pressure,omitempty"`
 	AbsolutePressure *float32 `json:"AbsolutePressure,omitempty"`
+	PressureTrend	 string   `json:"pressure_trend,omitempty"`
 	Rain             *float32 `json:"Rain,omitempty"`
 	Rain1Hour        *float32 `json:"sum_rain_1,omitempty"`
 	Rain1Day         *float32 `json:"sum_rain_24,omitempty"`
@@ -105,6 +110,24 @@ type DashboardData struct {
 	GustAngle        *int32   `json:"GustAngle,omitempty"`
 	GustStrength     *int32   `json:"GustStrength,omitempty"`
 	LastMeasure      *int64   `json:"time_utc"`
+}
+
+type Place struct {
+	Altitude	*int32     `json:"altitude,omitempty"`
+	City		string     `json:"city,omitempty"`
+	Country		string     `json:"country,omitempty"`
+	Timezone	string     `json:"timezone,omitempty"`
+	Location   Location  `json:"location,omitempty"`
+}
+
+type Location struct {
+	Longitude   *float32
+	Latitude    *float32
+}
+
+func (tp *Location) UnmarshalJSON(data []byte) error {
+    a := []interface{}{&tp.Longitude, &tp.Latitude}
+    return json.Unmarshal(data, &a)
 }
 
 // NewClient create a handle authentication to Netamo API
@@ -235,6 +258,15 @@ func (d *Device) Data() (int64, map[string]interface{}) {
 	if d.DashboardData.Temperature != nil {
 		m["Temperature"] = *d.DashboardData.Temperature
 	}
+	if d.DashboardData.MinTemp != nil {
+		m["MinTemp"] = *d.DashboardData.MinTemp
+	}
+	if d.DashboardData.MaxTemp != nil {
+		m["MaxTemp"] = *d.DashboardData.MaxTemp
+	}
+	if d.DashboardData.TempTrend != "" {
+		m["TempTrend"] = d.DashboardData.TempTrend
+	}
 	if d.DashboardData.Humidity != nil {
 		m["Humidity"] = *d.DashboardData.Humidity
 	}
@@ -249,6 +281,9 @@ func (d *Device) Data() (int64, map[string]interface{}) {
 	}
 	if d.DashboardData.AbsolutePressure != nil {
 		m["AbsolutePressure"] = *d.DashboardData.AbsolutePressure
+	}
+	if d.DashboardData.PressureTrend != "" {
+		m["PressureTrend"] = d.DashboardData.PressureTrend
 	}
 	if d.DashboardData.Rain != nil {
 		m["Rain"] = *d.DashboardData.Rain

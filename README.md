@@ -8,7 +8,13 @@ Simple API to access Netatmo weather station data written in Go.
 - run ```go run test/netatmo-api-test.go -f test/sample.conf```
 - Output shall look like :
 ```
-Station : Home               
+Station : Home
+        City: Bern
+        Country: CH
+        Timezone: Europe/Zurich
+        Longitude: 7.265078
+        Latitude: 46.565312
+        Altitude: 540               
         Module : Chambre Elsa                              
                 BatteryPercent : 47 (updated 323s ago)     
                 RFStatus : 68 (updated 323s ago)           
