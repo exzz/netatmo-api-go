@@ -17,32 +17,39 @@ func (dc *DeviceCollection) Stations() []*Device {
 	return dc.Devices()
 }
 
-// Device is a station or a module
-// ID : Mac address
-// StationName : Station name (only for station)
-// ModuleName : Module name
-// BatteryPercent : Percentage of battery remaining
-// WifiStatus : Wifi status per Base station
-// RFStatus : Current radio status per module
-// Type : Module type :
-//  "NAMain" : for the base station
-//  "NAModule1" : for the outdoor module
-//  "NAModule4" : for the additionnal indoor module
-//  "NAModule3" : for the rain gauge module
-//  "NAModule2" : for the wind gauge module
-// DashboardData : Data collection from device sensors
-// DataType : List of available datas
-// LinkedModules : Associated modules (only for station)
+// Device contains data of a station or a module.
 type Device struct {
-	ID             string `json:"_id"`
-	StationName    string `json:"station_name"`
-	ModuleName     string `json:"module_name"`
+	// ID : Mac address
+	ID string `json:"_id"`
+	// ModuleName contains the name of the module.
+	ModuleName string `json:"module_name"`
+	// HomeID contains the id of the home where the station is placed.
+	HomeID string `json:"home_id"`
+	// HomeName contains the name of the home where the station is placed.
+	HomeName string `json:"home_name"`
+	// StationName contains the name of the station.
+	//
+	// Deprecated: Use HomeName and ModuleName instead.
+	StationName string `json:"station_name"`
+	// BatteryPercent : Percentage of battery remaining
 	BatteryPercent *int32 `json:"battery_percent,omitempty"`
-	WifiStatus     *int32 `json:"wifi_status,omitempty"`
-	RFStatus       *int32 `json:"rf_status,omitempty"`
-	Type           string
-	DashboardData  DashboardData `json:"dashboard_data"`
-	LinkedModules  []*Device     `json:"modules"`
+	// WifiStatus : Wifi status per Base station
+	WifiStatus *int32 `json:"wifi_status,omitempty"`
+	// RFStatus : Current radio status per module
+	RFStatus *int32 `json:"rf_status,omitempty"`
+	// Type : Module type :
+	//  "NAMain" : for the base station
+	//  "NAModule1" : for the outdoor module
+	//  "NAModule4" : for the additional indoor module
+	//  "NAModule3" : for the rain gauge module
+	//  "NAModule2" : for the wind gauge module
+	Type string
+	// ReadOnly shows if the user owns the station.
+	ReadOnly bool `json:"read_only"`
+	// DashboardData : Data collection from device sensors
+	DashboardData DashboardData `json:"dashboard_data"`
+	// LinkedModules : Associated modules (only for station)
+	LinkedModules []*Device `json:"modules"`
 }
 
 // Modules returns associated device module
