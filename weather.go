@@ -71,7 +71,6 @@ type Device struct {
 	RFStatus       *int32 `json:"rf_status,omitempty"`
 	Type           string
 	DashboardData  DashboardData `json:"dashboard_data"`
-	//DataType      []string      `json:"data_type"`
 	LinkedModules []*Device `json:"modules"`
 }
 
@@ -107,7 +106,7 @@ type DashboardData struct {
 	LastMeasure      *int64   `json:"time_utc"`
 }
 
-// NewClient create a handle authentication to Netamo API
+// NewClient create a handle authentication to NetAtmo API
 func NewClient(config Config) (*Client, error) {
 	oauth := &oauth2.Config{
 		ClientID:     config.ClientID,
@@ -130,13 +129,11 @@ func NewClient(config Config) (*Client, error) {
 
 // do a url encoded HTTP POST request
 func (c *Client) doHTTPPostForm(url string, data url.Values) (*http.Response, error) {
-
 	req, err := http.NewRequest("POST", url, strings.NewReader(data.Encode()))
 	if err != nil {
 		return nil, err
 	}
 
-	//req.ContentLength = int64(reader.Len())
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	return c.doHTTP(req)
@@ -157,11 +154,6 @@ func (c *Client) doHTTPGet(url string, data url.Values) (*http.Response, error) 
 
 // do a generic HTTP request
 func (c *Client) doHTTP(req *http.Request) (*http.Response, error) {
-
-	// debug
-	//debug, _ := httputil.DumpRequestOut(req, true)
-	//fmt.Printf("%s\n\n", debug)
-
 	var err error
 	c.httpResponse, err = c.httpClient.Do(req)
 	if err != nil {
@@ -177,10 +169,6 @@ func processHTTPResponse(resp *http.Response, err error, holder interface{}) err
 	if err != nil {
 		return err
 	}
-
-	// debug
-	//debug, _ := httputil.DumpResponse(resp, true)
-	//fmt.Printf("%s\n\n", debug)
 
 	// check http return code
 	if resp.StatusCode != 200 {
@@ -199,7 +187,6 @@ func processHTTPResponse(resp *http.Response, err error, holder interface{}) err
 // GetStations returns the list of stations owned by the user, and their modules
 func (c *Client) Read() (*DeviceCollection, error) {
 	resp, err := c.doHTTPGet(deviceURL, url.Values{"app_type": {"app_station"}})
-	//dc := &DeviceCollection{}
 
 	if err = processHTTPResponse(resp, err, c.Dc); err != nil {
 		return nil, err
@@ -228,7 +215,6 @@ func (d *Device) Modules() []*Device {
 
 // Data returns timestamp and the list of sensor value for this module
 func (d *Device) Data() (int64, map[string]interface{}) {
-
 	// return only populate field of DashboardData
 	m := make(map[string]interface{})
 
@@ -280,7 +266,6 @@ func (d *Device) Data() (int64, map[string]interface{}) {
 
 // Info returns timestamp and the list of info value for this module
 func (d *Device) Info() (int64, map[string]interface{}) {
-
 	// return only populate field of DashboardData
 	m := make(map[string]interface{})
 
