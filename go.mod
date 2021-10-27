@@ -2,10 +2,7 @@ module github.com/exzz/netatmo-api-go
 
 go 1.17
 
-require (
-	github.com/BurntSushi/toml v0.4.1
-	golang.org/x/oauth2 v0.0.0-20211005180243-6b3c2da341f1
-)
+require golang.org/x/oauth2 v0.0.0-20211005180243-6b3c2da341f1
 
 require (
 	github.com/golang/protobuf v1.4.2 // indirect
