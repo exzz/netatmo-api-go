@@ -1,5 +1,27 @@
 package netatmo
 
+import (
+	"time"
+
+	"golang.org/x/oauth2"
+)
+
+// TokenResponse contains the authentication token received from the API
+type TokenResponse struct {
+	AccessToken  string `json:"access_token"`
+	ExpiresIn    int    `json:"expires_in"`
+	RefreshToken string `json:"refresh_token"`
+}
+
+func (t TokenResponse) Token(issueTime time.Time) *oauth2.Token {
+	return &oauth2.Token{
+		AccessToken:  t.AccessToken,
+		TokenType:    "",
+		RefreshToken: t.RefreshToken,
+		Expiry:       issueTime.Add(time.Second * time.Duration(t.ExpiresIn)),
+	}
+}
+
 // DeviceCollection hold all devices from netatmo account
 type DeviceCollection struct {
 	Body struct {
