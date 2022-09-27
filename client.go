@@ -67,3 +67,19 @@ func (c *Client) Exchange(ctx context.Context, code, state string) error {
 	c.httpClient = c.oauth.Client(ctx, token)
 	return nil
 }
+
+// CurrentToken retrieves the token for persisting state.
+func (c *Client) CurrentToken() (*oauth2.Token, error) {
+	if c.httpClient == nil {
+		return nil, ErrNotAuthenticated
+	}
+
+	transport := c.httpClient.Transport.(*oauth2.Transport)
+	source := transport.Source
+	return source.Token()
+}
+
+// InitWithToken initializes the client with an existing token.
+func (c *Client) InitWithToken(ctx context.Context, token *oauth2.Token) {
+	c.httpClient = c.oauth.Client(ctx, token)
+}
