@@ -173,7 +173,9 @@ func (c *Client) doHTTP(req *http.Request) (*http.Response, error) {
 // process HTTP response
 // Unmarshall received data into holder struct
 func processHTTPResponse(resp *http.Response, err error, holder interface{}) error {
-	defer resp.Body.Close()
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
 		return err
 	}
