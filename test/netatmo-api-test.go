@@ -7,18 +7,16 @@ import (
 	"time"
 
 	toml "github.com/BurntSushi/toml"
-	netatmo "github.com/exzz/netatmo-api-go"
+	netatmo "github.com/joshuabeny1999/netatmo-api-go/v2"
 )
 
 // Command line flag
 var fConfig = flag.String("f", "", "Configuration file")
 
-// API credentials
 type NetatmoConfig struct {
 	ClientID     string
 	ClientSecret string
-	Username     string
-	Password     string
+	RefreshToken string
 }
 
 var config NetatmoConfig
@@ -40,8 +38,7 @@ func main() {
 	n, err := netatmo.NewClient(netatmo.Config{
 		ClientID:     config.ClientID,
 		ClientSecret: config.ClientSecret,
-		Username:     config.Username,
-		Password:     config.Password,
+		RefreshToken: config.RefreshToken,
 	})
 	if err != nil {
 		fmt.Println(err)

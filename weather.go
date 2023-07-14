@@ -27,8 +27,7 @@ const (
 type Config struct {
 	ClientID     string
 	ClientSecret string
-	Username     string
-	Password     string
+	RefreshToken string
 }
 
 // Client use to make request to Netatmo API
@@ -101,7 +100,7 @@ type DashboardData struct {
 	Noise            *int32   `json:"Noise,omitempty"`
 	Pressure         *float32 `json:"Pressure,omitempty"`
 	AbsolutePressure *float32 `json:"AbsolutePressure,omitempty"`
-	PressureTrend	 string   `json:"pressure_trend,omitempty"`
+	PressureTrend    string   `json:"pressure_trend,omitempty"`
 	Rain             *float32 `json:"Rain,omitempty"`
 	Rain1Hour        *float32 `json:"sum_rain_1,omitempty"`
 	Rain1Day         *float32 `json:"sum_rain_24,omitempty"`
@@ -113,21 +112,21 @@ type DashboardData struct {
 }
 
 type Place struct {
-	Altitude	*int32     `json:"altitude,omitempty"`
-	City		string     `json:"city,omitempty"`
-	Country		string     `json:"country,omitempty"`
-	Timezone	string     `json:"timezone,omitempty"`
-	Location   Location  `json:"location,omitempty"`
+	Altitude *int32   `json:"altitude,omitempty"`
+	City     string   `json:"city,omitempty"`
+	Country  string   `json:"country,omitempty"`
+	Timezone string   `json:"timezone,omitempty"`
+	Location Location `json:"location,omitempty"`
 }
 
 type Location struct {
-	Longitude   *float32
-	Latitude    *float32
+	Longitude *float32
+	Latitude  *float32
 }
 
 func (tp *Location) UnmarshalJSON(data []byte) error {
-    a := []interface{}{&tp.Longitude, &tp.Latitude}
-    return json.Unmarshal(data, &a)
+	a := []interface{}{&tp.Longitude, &tp.Latitude}
+	return json.Unmarshal(data, &a)
 }
 
 // NewClient create a handle authentication to Netamo API
@@ -135,20 +134,20 @@ func NewClient(config Config) (*Client, error) {
 	oauth := &oauth2.Config{
 		ClientID:     config.ClientID,
 		ClientSecret: config.ClientSecret,
-		Scopes:       []string{"read_station"},
 		Endpoint: oauth2.Endpoint{
-			AuthURL:  baseURL,
 			TokenURL: authURL,
 		},
 	}
 
-	token, err := oauth.PasswordCredentialsToken(oauth2.NoContext, config.Username, config.Password)
+	token := &oauth2.Token{
+		RefreshToken: config.RefreshToken,
+	}
 
 	return &Client{
 		oauth:      oauth,
 		httpClient: oauth.Client(oauth2.NoContext, token),
 		Dc:         &DeviceCollection{},
-	}, err
+	}, nil
 }
 
 // do a url encoded HTTP POST request
