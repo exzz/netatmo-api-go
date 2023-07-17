@@ -53,11 +53,13 @@ type DeviceCollection struct {
 // WifiStatus : Wifi status per Base station
 // RFStatus : Current radio status per module
 // Type : Module type :
-//  "NAMain" : for the base station
-//  "NAModule1" : for the outdoor module
-//  "NAModule4" : for the additionnal indoor module
-//  "NAModule3" : for the rain gauge module
-//  "NAModule2" : for the wind gauge module
+//
+//	"NAMain" : for the base station
+//	"NAModule1" : for the outdoor module
+//	"NAModule4" : for the additionnal indoor module
+//	"NAModule3" : for the rain gauge module
+//	"NAModule2" : for the wind gauge module
+//
 // DashboardData : Data collection from device sensors
 // DataType : List of available datas
 // LinkedModules : Associated modules (only for station)
@@ -309,6 +311,10 @@ func (d *Device) Data() (int64, map[string]interface{}) {
 		m["GustStrength"] = *d.DashboardData.GustStrength
 	}
 
+	if d.DashboardData.LastMeasure == nil {
+		return 0, m
+	}
+
 	return *d.DashboardData.LastMeasure, m
 }
 
@@ -327,6 +333,10 @@ func (d *Device) Info() (int64, map[string]interface{}) {
 	}
 	if d.RFStatus != nil {
 		m["RFStatus"] = *d.RFStatus
+	}
+
+	if d.DashboardData.LastMeasure == nil {
+		return 0, m
 	}
 
 	return *d.DashboardData.LastMeasure, m
