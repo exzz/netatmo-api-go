@@ -1,6 +1,7 @@
 package netatmo
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -12,7 +13,7 @@ import (
 
 const (
 	// DefaultBaseURL is netatmo api url
-	baseURL = "https://api.netatmo.net/"
+	baseURL = "https://api.netatmo.com/"
 	// DefaultAuthURL is netatmo auth url
 	authURL = baseURL + "oauth2/token"
 	// DefaultDeviceURL is netatmo device url
@@ -36,6 +37,7 @@ type Client struct {
 	httpClient   *http.Client
 	httpResponse *http.Response
 	Dc           *DeviceCollection
+	RefreshToken string
 }
 
 // DeviceCollection hold all devices from netatmo account
@@ -145,10 +147,17 @@ func NewClient(config Config) (*Client, error) {
 		RefreshToken: config.RefreshToken,
 	}
 
+	// get new token and save it
+	token, err := oauth.TokenSource(context.Background(), token).Token()
+	if err != nil {
+		return nil, err
+	}
+
 	return &Client{
-		oauth:      oauth,
-		httpClient: oauth.Client(oauth2.NoContext, token),
-		Dc:         &DeviceCollection{},
+		oauth:        oauth,
+		httpClient:   oauth.Client(context.Background(), token),
+		Dc:           &DeviceCollection{},
+		RefreshToken: token.RefreshToken,
 	}, nil
 }
 
@@ -313,10 +322,6 @@ func (d *Device) Data() (int64, map[string]interface{}) {
 		m["GustStrength"] = *d.DashboardData.GustStrength
 	}
 
-	if d.DashboardData.LastMeasure == nil {
-		return 0, m
-	}
-
 	return *d.DashboardData.LastMeasure, m
 }
 
@@ -335,10 +340,6 @@ func (d *Device) Info() (int64, map[string]interface{}) {
 	}
 	if d.RFStatus != nil {
 		m["RFStatus"] = *d.RFStatus
-	}
-
-	if d.DashboardData.LastMeasure == nil {
-		return 0, m
 	}
 
 	return *d.DashboardData.LastMeasure, m

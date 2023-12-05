@@ -79,4 +79,24 @@ func main() {
 			}
 		}
 	}
+
+	// save the refresh token if changed
+	if config.RefreshToken != n.RefreshToken {
+		config.RefreshToken = n.RefreshToken
+		fmt.Printf("Saving new refresh token: %s\n", config.RefreshToken)
+		file, err := os.Create(*fConfig)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		defer file.Close()
+
+		encoder := toml.NewEncoder(file)
+		if err := encoder.Encode(config); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	} else {
+		fmt.Printf("Refresh token unchanged: %s\n", config.RefreshToken)
+	}
 }
