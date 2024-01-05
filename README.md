@@ -4,11 +4,18 @@ Simple API to access Netatmo weather station data written in Go.
 ## Quickstart
 
 - [Create a new netatmo app](https://dev.netatmo.com/dev/createapp)
-- Edit ```test/sample.conf```with your credentials
+- Generate a new token using the token generator. Scope needed is `read_station`: ![token_generator_netatmo.png](token_generator_netatmo.png)
+- Edit ```test/sample.conf```with your credentials 
 - run ```go run test/netatmo-api-test.go -f test/sample.conf```
 - Output shall look like :
 ```
-Station : Home               
+Station : Home
+        City: Bern
+        Country: CH
+        Timezone: Europe/Zurich
+        Longitude: 7.265078
+        Latitude: 46.565312
+        Altitude: 540               
         Module : Chambre Elsa                              
                 BatteryPercent : 47 (updated 323s ago)     
                 RFStatus : 68 (updated 323s ago)           

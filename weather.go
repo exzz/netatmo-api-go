@@ -1,6 +1,7 @@
 package netatmo
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -12,7 +13,7 @@ import (
 
 const (
 	// DefaultBaseURL is netatmo api url
-	baseURL = "https://api.netatmo.net/"
+	baseURL = "https://api.netatmo.com/"
 	// DefaultAuthURL is netatmo auth url
 	authURL = baseURL + "oauth2/token"
 	// DefaultDeviceURL is netatmo device url
@@ -27,8 +28,7 @@ const (
 type Config struct {
 	ClientID     string
 	ClientSecret string
-	Username     string
-	Password     string
+	RefreshToken string
 }
 
 // Client use to make request to Netatmo API
@@ -37,6 +37,7 @@ type Client struct {
 	httpClient   *http.Client
 	httpResponse *http.Response
 	Dc           *DeviceCollection
+	RefreshToken string
 }
 
 // DeviceCollection hold all devices from netatmo account
@@ -54,11 +55,13 @@ type DeviceCollection struct {
 // WifiStatus : Wifi status per Base station
 // RFStatus : Current radio status per module
 // Type : Module type :
-//  "NAMain" : for the base station
-//  "NAModule1" : for the outdoor module
-//  "NAModule4" : for the additionnal indoor module
-//  "NAModule3" : for the rain gauge module
-//  "NAModule2" : for the wind gauge module
+//
+//	"NAMain" : for the base station
+//	"NAModule1" : for the outdoor module
+//	"NAModule4" : for the additionnal indoor module
+//	"NAModule3" : for the rain gauge module
+//	"NAModule2" : for the wind gauge module
+//
 // DashboardData : Data collection from device sensors
 // DataType : List of available datas
 // LinkedModules : Associated modules (only for station)
@@ -71,6 +74,7 @@ type Device struct {
 	RFStatus       *int32 `json:"rf_status,omitempty"`
 	Type           string
 	DashboardData  DashboardData `json:"dashboard_data"`
+	Place          Place         `json:"place"`
 	//DataType      []string      `json:"data_type"`
 	LinkedModules []*Device `json:"modules"`
 }
@@ -92,11 +96,15 @@ type Device struct {
 // LastMeasure : Contains timestamp of last data received
 type DashboardData struct {
 	Temperature      *float32 `json:"Temperature,omitempty"` // use pointer to detect ommitted field by json mapping
+	MaxTemp          *float32 `json:"max_temp,omitempty"`
+	MinTemp          *float32 `json:"min_temp,omitempty"`
+	TempTrend        string   `json:"temp_trend,omitempty"`
 	Humidity         *int32   `json:"Humidity,omitempty"`
 	CO2              *int32   `json:"CO2,omitempty"`
 	Noise            *int32   `json:"Noise,omitempty"`
 	Pressure         *float32 `json:"Pressure,omitempty"`
 	AbsolutePressure *float32 `json:"AbsolutePressure,omitempty"`
+	PressureTrend    string   `json:"pressure_trend,omitempty"`
 	Rain             *float32 `json:"Rain,omitempty"`
 	Rain1Hour        *float32 `json:"sum_rain_1,omitempty"`
 	Rain1Day         *float32 `json:"sum_rain_24,omitempty"`
@@ -107,25 +115,50 @@ type DashboardData struct {
 	LastMeasure      *int64   `json:"time_utc"`
 }
 
+type Place struct {
+	Altitude *int32   `json:"altitude,omitempty"`
+	City     string   `json:"city,omitempty"`
+	Country  string   `json:"country,omitempty"`
+	Timezone string   `json:"timezone,omitempty"`
+	Location Location `json:"location,omitempty"`
+}
+
+type Location struct {
+	Longitude *float32
+	Latitude  *float32
+}
+
+func (tp *Location) UnmarshalJSON(data []byte) error {
+	a := []interface{}{&tp.Longitude, &tp.Latitude}
+	return json.Unmarshal(data, &a)
+}
+
 // NewClient create a handle authentication to Netamo API
 func NewClient(config Config) (*Client, error) {
 	oauth := &oauth2.Config{
 		ClientID:     config.ClientID,
 		ClientSecret: config.ClientSecret,
-		Scopes:       []string{"read_station"},
 		Endpoint: oauth2.Endpoint{
-			AuthURL:  baseURL,
 			TokenURL: authURL,
 		},
 	}
 
-	token, err := oauth.PasswordCredentialsToken(oauth2.NoContext, config.Username, config.Password)
+	token := &oauth2.Token{
+		RefreshToken: config.RefreshToken,
+	}
+
+	// get new token and save it
+	token, err := oauth.TokenSource(context.Background(), token).Token()
+	if err != nil {
+		return nil, err
+	}
 
 	return &Client{
-		oauth:      oauth,
-		httpClient: oauth.Client(oauth2.NoContext, token),
-		Dc:         &DeviceCollection{},
-	}, err
+		oauth:        oauth,
+		httpClient:   oauth.Client(context.Background(), token),
+		Dc:           &DeviceCollection{},
+		RefreshToken: token.RefreshToken,
+	}, nil
 }
 
 // do a url encoded HTTP POST request
@@ -173,7 +206,9 @@ func (c *Client) doHTTP(req *http.Request) (*http.Response, error) {
 // process HTTP response
 // Unmarshall received data into holder struct
 func processHTTPResponse(resp *http.Response, err error, holder interface{}) error {
-	defer resp.Body.Close()
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
 		return err
 	}
@@ -235,6 +270,15 @@ func (d *Device) Data() (int64, map[string]interface{}) {
 	if d.DashboardData.Temperature != nil {
 		m["Temperature"] = *d.DashboardData.Temperature
 	}
+	if d.DashboardData.MinTemp != nil {
+		m["MinTemp"] = *d.DashboardData.MinTemp
+	}
+	if d.DashboardData.MaxTemp != nil {
+		m["MaxTemp"] = *d.DashboardData.MaxTemp
+	}
+	if d.DashboardData.TempTrend != "" {
+		m["TempTrend"] = d.DashboardData.TempTrend
+	}
 	if d.DashboardData.Humidity != nil {
 		m["Humidity"] = *d.DashboardData.Humidity
 	}
@@ -249,6 +293,9 @@ func (d *Device) Data() (int64, map[string]interface{}) {
 	}
 	if d.DashboardData.AbsolutePressure != nil {
 		m["AbsolutePressure"] = *d.DashboardData.AbsolutePressure
+	}
+	if d.DashboardData.PressureTrend != "" {
+		m["PressureTrend"] = d.DashboardData.PressureTrend
 	}
 	if d.DashboardData.Rain != nil {
 		m["Rain"] = *d.DashboardData.Rain

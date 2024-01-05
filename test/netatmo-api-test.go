@@ -7,18 +7,16 @@ import (
 	"time"
 
 	toml "github.com/BurntSushi/toml"
-	netatmo "github.com/exzz/netatmo-api-go"
+	netatmo "github.com/joshuabeny1999/netatmo-api-go/v2"
 )
 
 // Command line flag
 var fConfig = flag.String("f", "", "Configuration file")
 
-// API credentials
 type NetatmoConfig struct {
 	ClientID     string
 	ClientSecret string
-	Username     string
-	Password     string
+	RefreshToken string
 }
 
 var config NetatmoConfig
@@ -40,8 +38,7 @@ func main() {
 	n, err := netatmo.NewClient(netatmo.Config{
 		ClientID:     config.ClientID,
 		ClientSecret: config.ClientSecret,
-		Username:     config.Username,
-		Password:     config.Password,
+		RefreshToken: config.RefreshToken,
 	})
 	if err != nil {
 		fmt.Println(err)
@@ -58,6 +55,7 @@ func main() {
 
 	for _, station := range dc.Stations() {
 		fmt.Printf("Station : %s\n", station.StationName)
+		fmt.Printf("\tCity: %s\n\tCountry: %s\n\tTimezone: %s\n\tLongitude: %f\n\tLatitude: %f\n\tAltitude: %d\n\n", station.Place.City, station.Place.Country, station.Place.Timezone, *station.Place.Location.Longitude, *station.Place.Location.Latitude, *station.Place.Altitude)
 
 		for _, module := range station.Modules() {
 			fmt.Printf("\tModule : %s\n", module.ModuleName)
@@ -80,5 +78,25 @@ func main() {
 				}
 			}
 		}
+	}
+
+	// save the refresh token if changed
+	if config.RefreshToken != n.RefreshToken {
+		config.RefreshToken = n.RefreshToken
+		fmt.Printf("Saving new refresh token: %s\n", config.RefreshToken)
+		file, err := os.Create(*fConfig)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		defer file.Close()
+
+		encoder := toml.NewEncoder(file)
+		if err := encoder.Encode(config); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	} else {
+		fmt.Printf("Refresh token unchanged: %s\n", config.RefreshToken)
 	}
 }
